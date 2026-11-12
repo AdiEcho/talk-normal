@@ -4,9 +4,9 @@
  *
  * Usage: node scripts/test-extension.mjs
  *
- * Loads extensions/talk-normal/index.ts against a stubbed ExtensionAPI and
- * checks section injection, toggling, the CLI flag, a missing prompt file, and
- * the /talk-normal check scanner.
+ * Loads extensions/talk-normal/index.ts from a fake installed package against a
+ * stubbed ExtensionAPI, then checks injection, toggling, the CLI flag, the
+ * state file, a missing prompt, and the /talk-normal check scanner.
  *
  * The host package is resolved from the running pi install. Override with
  * PI_CODING_AGENT_PACKAGE=/path/to/@earendil-works/pi-coding-agent.
@@ -28,15 +28,17 @@ function hostPackageDir() {
 
 const host = hostPackageDir();
 const sandbox = mkdtempSync(join(tmpdir(), "talk-normal-pi-"));
+const pkgDir = join(sandbox, "pkg");
+const extDir = join(pkgDir, "extensions", "talk-normal");
 const agentDir = join(sandbox, "agent");
-const extDir = join(sandbox, "extension");
 process.env.PI_CODING_AGENT_DIR = agentDir;
 
-mkdirSync(join(sandbox, "node_modules", "@earendil-works"), { recursive: true });
-symlinkSync(host, join(sandbox, "node_modules", "@earendil-works", "pi-coding-agent"), "dir");
+mkdirSync(join(pkgDir, "node_modules", "@earendil-works"), { recursive: true });
+symlinkSync(host, join(pkgDir, "node_modules", "@earendil-works", "pi-coding-agent"), "dir");
 mkdirSync(extDir, { recursive: true });
+cpSync(join(repoRoot, "package.json"), join(pkgDir, "package.json"));
 cpSync(join(repoRoot, "extensions", "talk-normal", "index.ts"), join(extDir, "index.ts"));
-cpSync(join(repoRoot, "prompt.md"), join(extDir, "prompt.md"));
+cpSync(join(repoRoot, "extensions", "talk-normal", "prompt.md"), join(extDir, "prompt.md"));
 
 const { default: factory } = await import(pathToFileURL(join(extDir, "index.ts")).href);
 
@@ -87,27 +89,23 @@ function stateFile() {
 
 try {
 	const pkg = JSON.parse(readFileSync(join(repoRoot, "package.json"), "utf8"));
-	const promptHeader = readFileSync(join(repoRoot, "prompt.md"), "utf8").split("\n", 1)[0];
+	const changelog = readFileSync(join(repoRoot, "CHANGELOG.md"), "utf8");
 
 	check("package declares the extension", pkg.pi?.extensions?.includes("./extensions/talk-normal/index.ts"));
 	check("package ships the extension", (pkg.files ?? []).some((entry) => entry === "extensions" || entry.startsWith("extensions/")));
-	check("package version matches prompt.md", promptHeader.includes(pkg.version), promptHeader);
+	check("changelog documents this version", changelog.includes(`## [${pkg.version}]`));
 	check("extension is a factory function", typeof factory === "function");
 
 	const base = harness();
 	check("registers before_agent_start", base.handlers.has("before_agent_start"));
 	check("registers /talk-normal", base.commands.has("talk-normal"));
 	check("registers the session flag", base.registeredFlags.get("no-talk-normal")?.type === "boolean");
-	check(
-		"bundled prompt matches the source",
-		readFileSync(join(repoRoot, "extensions", "talk-normal", "prompt.md"), "utf8") === readFileSync(join(repoRoot, "prompt.md"), "utf8"),
-	);
 
 	let sections = base.run();
 	check("injects the rules by default", typeof sections.talk_normal === "string");
 	check("rules are the prompt body", (sections.talk_normal ?? "").startsWith("Be direct and informative"));
 	check("rules carry the core constraint", (sections.talk_normal ?? "").includes("prefer direct positive claims"));
-	check("version comment is stripped", !(sections.talk_normal ?? "").includes("<!--"));
+	check("rules carry no prompt header", !(sections.talk_normal ?? "").includes("<!--"));
 
 	await base.commands.get("talk-normal").handler("off", base.ctx());
 	check("off persists to disk", JSON.parse(readFileSync(stateFile(), "utf8")).enabled === false);
@@ -121,10 +119,7 @@ try {
 	const flagged = harness({ "no-talk-normal": true });
 	check("flag disables injection", flagged.run().talk_normal === undefined);
 	await flagged.commands.get("talk-normal").handler("on", flagged.ctx());
-	check(
-		"on warns when the session flag overrides",
-		(flagged.notifications.at(-1)?.message ?? "").includes("overrides"),
-	);
+	check("on warns when the session flag overrides", (flagged.notifications.at(-1)?.message ?? "").includes("overrides"));
 
 	writeFileSync(stateFile(), "{not json");
 	check("corrupt state falls back to on", typeof base.run().talk_normal === "string");
@@ -140,11 +135,11 @@ try {
 
 	base.notifications.length = 0;
 	await base.commands.get("talk-normal").handler("status", base.ctx());
-	check("status reports version and path", /talk-normal v\d+\.\d+\.\d+ \(on\)/.test(base.notifications[0]?.message ?? ""));
+	check("status reports version and path", (base.notifications[0]?.message ?? "").startsWith(`talk-normal v${pkg.version} (on)`));
 
 	base.notifications.length = 0;
 	await base.commands.get("talk-normal").handler("version", base.ctx());
-	check("version subcommand prints the prompt version", base.notifications[0]?.message === `talk-normal v${pkg.version}`);
+	check("version subcommand prints the package version", base.notifications[0]?.message === `talk-normal v${pkg.version}`);
 
 	const branch = [
 		{
@@ -176,8 +171,7 @@ try {
 
 	const bundled = join(extDir, "prompt.md");
 	renameSync(bundled, `${bundled}.off`);
-	sections = base.run();
-	check("missing prompt file does not throw", sections.talk_normal === undefined);
+	check("missing prompt file does not throw", base.run().talk_normal === undefined);
 	base.notifications.length = 0;
 	base.handlers.get("session_start")({}, base.ctx());
 	check("missing prompt file is reported", (base.notifications[0]?.message ?? "").includes("prompt.md not found"));

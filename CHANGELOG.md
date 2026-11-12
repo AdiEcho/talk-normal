@@ -2,6 +2,13 @@
 
 All notable changes to talk-normal will be recorded here. Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
 
+## [0.8.0] - 2026-11-12
+
+- Reduce the project to the pi plugin. Remove the OpenClaw and Hermes skill bundles (`skill/`, `skill-hermes/`), the `AGENTS.md` installer (`install.sh`), the ChatGPT custom-instructions variant (`prompt-chatgpt.md`), the OpenAI benchmark harness (`scripts/run-tests.sh`, `TEST_RESULTS.md`), the rule-regression archive (`regressions/`), and `scripts/sync-skill.sh`. Pi installs extensions directly, so the extra install paths and their sync step are dead weight.
+- Move the rules to `extensions/talk-normal/prompt.md`. One copy, no sync step, no version comment to strip; the extension reads it from its own directory.
+- Read the version from `package.json` instead of a prompt header. `package.json` is now the only place a version is written.
+- Rewrite README, README_CN, and CONTRIBUTING for the pi-only scope. Drop the long example transcript and the model benchmark tables.
+
 ## [0.7.0] - 2026-11-12
 
 - Ship as a pi package. `package.json` declares `pi.extensions` and the `pi-package` keyword, so `pi install git:github.com/hexiecs/talk-normal` (or `pi install ./talk-normal`) registers the extension. The repo still works as a plain prompt and as the OpenClaw / Hermes skill.

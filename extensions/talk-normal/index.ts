@@ -27,8 +27,10 @@ import {
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 
-/** Bundled copy; scripts/sync-skill.sh keeps it identical to the repo root. */
+/** Rules live next to the extension; this is the only copy. */
 const PROMPT_PATH = join(HERE, "prompt.md");
+/** Version source. Two levels up is the package root. */
+const PACKAGE_PATH = join(HERE, "..", "..", "package.json");
 
 const SECTION_NAME = "talk_normal";
 const FLAG_NAME = "no-talk-normal";
@@ -84,14 +86,10 @@ function findPromptPath(): string | undefined {
 	return existsSync(PROMPT_PATH) ? PROMPT_PATH : undefined;
 }
 
-/** Prompt text with the version comment stripped. */
+/** Prompt text, or undefined when the file is missing or empty. */
 function readRules(): string | undefined {
-	const path = findPromptPath();
-	if (!path) return undefined;
 	try {
-		const text = readFileSync(path, "utf8")
-			.replace(/^\s*<!--[\s\S]*?-->\s*/, "")
-			.trim();
+		const text = readFileSync(PROMPT_PATH, "utf8").trim();
 		return text.length > 0 ? text : undefined;
 	} catch {
 		return undefined;
@@ -99,14 +97,15 @@ function readRules(): string | undefined {
 }
 
 function readVersion(): string {
-	const path = findPromptPath();
-	if (!path) return "unknown";
 	try {
-		const header = readFileSync(path, "utf8").split("\n", 1)[0] ?? "";
-		return header.match(/\d+\.\d+\.\d+/)?.[0] ?? "unknown";
+		const parsed: unknown = JSON.parse(readFileSync(PACKAGE_PATH, "utf8"));
+		if (parsed && typeof parsed === "object" && typeof (parsed as { version?: unknown }).version === "string") {
+			return (parsed as { version: string }).version;
+		}
 	} catch {
-		return "unknown";
+		// Missing or unreadable package.json.
 	}
+	return "unknown";
 }
 
 function isEnabled(pi: ExtensionAPI): boolean {

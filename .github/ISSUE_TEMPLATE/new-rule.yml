@@ -1,5 +1,5 @@
 name: New rule suggestion
-description: Propose a new anti-slop rule for prompt.md. Every rule needs a receipt.
+description: Propose a new anti-slop rule for extensions/talk-normal/prompt.md. Every rule needs a receipt.
 title: "[rule] "
 labels: ["rule-suggestion"]
 body:
@@ -37,7 +37,7 @@ body:
     id: rule
     attributes:
       label: Proposed rule text
-      description: The exact text you think should go into prompt.md.
+      description: The exact text you think should go into extensions/talk-normal/prompt.md.
       placeholder: "e.g. Never offer a conditional next step (\"if you want X, I can Y\"). Just answer the question."
     validations:
       required: true

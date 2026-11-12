@@ -1,7 +1,7 @@
 {
   "name": "pi-talk-normal",
-  "version": "0.7.0",
-  "description": "talk-normal for pi: injects the anti-slop prompt into every turn as a replaceable system-prompt section.",
+  "version": "0.8.0",
+  "description": "talk-normal for pi: injects anti-slop writing rules as a system-prompt section on every turn.",
   "keywords": [
     "pi-package",
     "pi",
@@ -20,9 +20,8 @@
   },
   "files": [
     "extensions",
-    "prompt.md",
-    "prompt-chatgpt.md",
     "README.md",
+    "README_CN.md",
     "CHANGELOG.md",
     "LICENSE"
   ],
