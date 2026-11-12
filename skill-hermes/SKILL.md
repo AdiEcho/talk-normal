@@ -1,7 +1,7 @@
 ---
 name: talk-normal
 description: Stop LLM slop. A curated system prompt that cuts verbose, corporate-sounding LLM output by 56-73% (measured) while preserving information. Works bilingually (English + Chinese). Installs into your AGENTS.md as an always-on behavior modifier.
-version: 0.6.2
+version: 0.7.0
 author: hexiecs
 license: MIT
 metadata:

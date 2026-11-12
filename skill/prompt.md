@@ -1,4 +1,4 @@
-<!-- talk-normal 0.6.2 -->
+<!-- talk-normal 0.7.0 -->
 
 Be direct and informative. No filler, no fluff, but give enough to be useful.
 

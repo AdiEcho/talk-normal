@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
-# sync-skill.sh — copy prompt.md and install.sh from the repo root into skill/
-# and skill-hermes/, and auto-update each SKILL.md's version field to match the
-# version header at the top of prompt.md. Single source of truth for the
-# version is prompt.md.
+# sync-skill.sh — copy prompt.md from the repo root into skill/, skill-hermes/,
+# and extensions/talk-normal/, copy install.sh into the skill bundles, and
+# auto-update each SKILL.md's version field to match the version header at the
+# top of prompt.md. Single source of truth for the version is prompt.md.
 #
 # Run this before `clawhub publish ./skill`.
 set -euo pipefail
@@ -11,6 +11,7 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 SKILL_DIR="$REPO_ROOT/skill"
 HERMES_DIR="$REPO_ROOT/skill-hermes"
+EXTENSION_DIR="$REPO_ROOT/extensions/talk-normal"
 PROMPT_FILE="$REPO_ROOT/prompt.md"
 SKILL_MANIFEST="$SKILL_DIR/SKILL.md"
 HERMES_MANIFEST="$HERMES_DIR/SKILL.md"
@@ -22,6 +23,11 @@ fi
 
 if [ ! -d "$HERMES_DIR" ]; then
   echo "Error: $HERMES_DIR does not exist" >&2
+  exit 1
+fi
+
+if [ ! -d "$EXTENSION_DIR" ]; then
+  echo "Error: $EXTENSION_DIR does not exist" >&2
   exit 1
 fi
 
@@ -47,6 +53,10 @@ for dest in "$SKILL_DIR" "$HERMES_DIR"; do
   chmod +x "$dest/install.sh"
 done
 
+# The pi extension reads the prompt from its own directory so the package works
+# when copied on its own into ~/.pi/agent/extensions/.
+cp "$PROMPT_FILE" "$EXTENSION_DIR/prompt.md"
+
 # Update SKILL.md version: field in both bundles
 for manifest in "$SKILL_MANIFEST" "$HERMES_MANIFEST"; do
   if [ -f "$manifest" ]; then
@@ -57,7 +67,8 @@ for manifest in "$SKILL_MANIFEST" "$HERMES_MANIFEST"; do
   fi
 done
 
-echo "Synced prompt.md and install.sh into $SKILL_DIR/ and $HERMES_DIR/"
+echo "Synced prompt.md into $SKILL_DIR/, $HERMES_DIR/, and $EXTENSION_DIR/"
+echo "Synced install.sh into the skill bundles"
 echo "Bumped SKILL.md version fields to $VERSION"
 
 # Soft reminder: if prompt.md has any commits newer than the most recent
@@ -77,5 +88,6 @@ if git -C "$REPO_ROOT" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
 fi
 
 echo "Next:"
+echo "  Pi:      npm publish (pi install npm:pi-talk-normal@$VERSION)"
 echo "  ClawHub: clawhub publish ./skill --slug talk-normal --version $VERSION --tags latest --changelog \"...\""
 echo "  Hermes:  hermes skills publish ./skill-hermes (or users install directly from GitHub)"

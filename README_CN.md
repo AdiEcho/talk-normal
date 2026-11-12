@@ -618,6 +618,37 @@
 
 ## 使用方法
 
+### Pi
+
+从 GitHub 安装:
+
+```bash
+pi install git:github.com/hexiecs/talk-normal
+```
+
+或者在本地 clone 后安装:
+
+```bash
+pi install ./talk-normal
+```
+
+这个包注册了一个扩展, 每次运行时把规则作为 `talk_normal` system prompt 区块注入, 不需要改 `AGENTS.md`, 也不需要开新会话。下一轮对话直接生效, 只在第一次多一次 prompt 缓存未命中, 之后没有额外开销。
+
+```text
+/talk-normal            显示版本、开关状态、已加载的 prompt 路径
+/talk-normal off        停止注入 (跨会话保留)
+/talk-normal on         恢复
+/talk-normal check      检查上一条回复里的禁用模式
+```
+
+`--no-talk-normal=1` 只对当前会话关闭。带 prompt 启动时要保留 `=1`, 否则裸 flag 会把后面的 prompt 当成它的值吞掉。
+
+卸载:
+
+```bash
+pi remove git:github.com/hexiecs/talk-normal
+```
+
 ### OpenClaw
 
 三种安装方式, 按你习惯的来:

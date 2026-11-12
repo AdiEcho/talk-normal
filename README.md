@@ -618,6 +618,37 @@ This is the actual case that motivated building talk-normal.
 
 ## Usage
 
+### Pi
+
+Install from GitHub:
+
+```bash
+pi install git:github.com/hexiecs/talk-normal
+```
+
+Or from a local clone:
+
+```bash
+pi install ./talk-normal
+```
+
+The package registers an extension that adds the rules as a `talk_normal` system-prompt section on every run, so there is no `AGENTS.md` edit and no new session needed. It applies from the next turn and costs one prompt-cache miss on its first turn, then nothing.
+
+```text
+/talk-normal            version, state, and loaded prompt path
+/talk-normal off        stop injecting rules (persists across sessions)
+/talk-normal on         resume
+/talk-normal check      scan the last reply for banned patterns
+```
+
+`--no-talk-normal=1` disables it for a single session. Keep the `=1` when you also pass a prompt, otherwise the bare flag consumes the prompt text.
+
+Remove with:
+
+```bash
+pi remove git:github.com/hexiecs/talk-normal
+```
+
 ### OpenClaw
 
 Three ways, pick whichever fits your workflow:

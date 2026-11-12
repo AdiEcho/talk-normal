@@ -2,6 +2,15 @@
 
 All notable changes to talk-normal will be recorded here. Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
 
+## [0.7.0] - 2026-11-12
+
+- Ship as a pi package. `package.json` declares `pi.extensions` and the `pi-package` keyword, so `pi install git:github.com/hexiecs/talk-normal` (or `pi install ./talk-normal`) registers the extension. The repo still works as a plain prompt and as the OpenClaw / Hermes skill.
+- Add `extensions/talk-normal/index.ts`. It injects `prompt.md` into every run as a `talk_normal` system-prompt section instead of editing `AGENTS.md`, so rules apply from the next turn with no new session. Pi diffs sections, so the injection stays prompt-cache warm after its first turn.
+- Add `/talk-normal` command: status (version, on/off, loaded prompt path), `on` / `off` (persisted in `~/.pi/agent/talk-normal.json`), `version`, and `check`, which scans the last assistant reply for negation frames, summary stamps, and filler. `--no-talk-normal` disables injection for one session.
+- Add `scripts/test-extension.mjs`: a no-network smoke test that loads the extension against a stubbed host API and covers injection, toggling, the flag, a missing prompt file, and the `check` scanner.
+- `sync-skill.sh` now also copies `prompt.md` into `extensions/talk-normal/`, keeping the packaged copy in step with the single source of truth.
+- Reword two README lines that still described the installer as the only path. Pi is documented first under Usage.
+
 ## Week of 2026-04-11
 
 - Add `prompt-chatgpt.md`: a compressed variant of `prompt.md` built to fit ChatGPT's 1500-character custom-instructions field limit. Preserves all load-bearing rules (negation-frame ban, closing-stamp ban, conditional-menu ban, filler list, BAD/GOOD few-shot examples). Compressed version clocks in at 1400 chars (100-char margin). Use `prompt.md` for OpenClaw / API / Cursor / Continue where there is no length cap; use `prompt-chatgpt.md` only for the ChatGPT custom-instructions field. Motivated by a real bug report on Twitter from @ppdng: `prompt.md` v0.6.1 is 3527 chars and does not fit in a 1500-char field.

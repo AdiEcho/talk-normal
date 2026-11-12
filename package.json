@@ -1,0 +1,37 @@
+{
+  "name": "pi-talk-normal",
+  "version": "0.7.0",
+  "description": "talk-normal for pi: injects the anti-slop prompt into every turn as a replaceable system-prompt section.",
+  "keywords": [
+    "pi-package",
+    "pi",
+    "prompt",
+    "anti-slop",
+    "concise"
+  ],
+  "license": "MIT",
+  "homepage": "https://github.com/hexiecs/talk-normal",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hexiecs/talk-normal.git"
+  },
+  "bugs": {
+    "url": "https://github.com/hexiecs/talk-normal/issues"
+  },
+  "files": [
+    "extensions",
+    "prompt.md",
+    "prompt-chatgpt.md",
+    "README.md",
+    "CHANGELOG.md",
+    "LICENSE"
+  ],
+  "pi": {
+    "extensions": [
+      "./extensions/talk-normal/index.ts"
+    ]
+  },
+  "peerDependencies": {
+    "@earendil-works/pi-coding-agent": "*"
+  }
+}
